@@ -1,17 +1,21 @@
 import React from 'react';
+import { AnswerObject } from '../App';
+import { Wrapper, ButtonWrapper } from './QuestionCard.styles';
 
 // doesn't HAVE to have the name 'Props', but for examples' sake rn we will be calling it this
 type Props = {
     question: string;
     answers: string[];
-    callback: any;
-    userAnswer: any;
+    callback: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    userAnswer: AnswerObject | undefined;
     questionNum: number;
     totalQuestions: number;
 }
 
 // this has to be rendered as a functional component, so after function name, use colon to specify and 'React.FC' which stands for, and renders this as, a Functional Component
 // type Prop name 'Props' in angled brackets, then define them all that will be used by this component in ({})
+// changed original div to Wrapper for styling purposes, and button div to ButtonWrapper
+// the "?" after userAnswer (called optional chaining in TS) will make it undefined if there is no answer
 const QuestionCard: React.FC<Props> = ({ 
     question, 
     answers, 
@@ -20,22 +24,25 @@ const QuestionCard: React.FC<Props> = ({
     questionNum, 
     totalQuestions
  }) => (
-    <div>
+    <Wrapper>
         <p className="number">
             Question: {questionNum} / {totalQuestions}
         </p>
-        <p dangerouslySetInnerHTML={{ __html: question }}>
+        <p dangerouslySetInnerHTML={{ __html: question }} />
         <div>
             {answers.map(answer => (
-                <div>
-                    <button disabled={userAnswer} onClick={callback}>
-                        <span dangerouslySetInnerHTML={{ __html: answer }} />
+                <ButtonWrapper 
+                  key={answer}
+                  correct={userAnswer?.correctAnswer === answer}
+                  userClicked={userAnswer?.answer === answer}
+                  >
+                    <button disabled={userAnswer ? true : false} value={answer} onClick={callback}>
+                        <span dangerouslySetInnerHTML={{ __html: answer }} /> 
                     </button>
-                </div>
+                </ButtonWrapper>
             ))}
         </div>
-        </p>
-    </div>
+    </Wrapper>
 );
 
 // notes: 'dangerouslySetInnerHTML' IS dangerous because you are never sure what will be injected into there if using HTML so try to mostly avoid this

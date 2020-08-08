@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { fetchTriviaQuestions } from './routes/API';
 import QuestionCard from './components/QuestionCard';
 import { QuestionState, Difficulty } from './routes/API';
+import { GlobalStyle, Wrapper } from './App.styles';
 
-type AnswerObject = {
+export type AnswerObject = {
   question: string;
   answer: string;
   // answer is what the user chooses
@@ -56,10 +57,33 @@ const App = () => {
 
   // TypeScript needs specification for 'e' what type of event, so we tell it it's a MouseEvent and specified EVEN MORE as an HTMLButtonElement
   const checkAnswer = (e: React.MouseEvent<HTMLButtonElement>) => {
-
-  }
+  if (!gameOver) {
+    // Get user answer from pressing the "Next" Button
+    const answer = e.currentTarget.value;
+    // Check user answer against correct answer
+    const correct = questions[number].correct_answer === answer;
+    // Add score if answer is correct
+    if (correct) setScore(prev => prev + 1);
+    // Save answer in the array for user answers
+    const answerObject = {
+      question: questions[number].question,
+      answer,
+      correct,
+      correctAnswer: questions[number].correct_answer,
+      };
+      setUserAnswers(prev => [...prev, answerObject])
+    }
+  };
 
   const nextQuestion = () => {
+    // Move on to the next question if not the last question
+    const nextQuestion = number + 1;
+
+    if (nextQuestion === TOTAL_QUESTIONS) {
+      setGameOver(true);
+    } else {
+      setNumber(nextQuestion);
+    }
 
   }
 
@@ -69,15 +93,19 @@ const App = () => {
   // for userAnswers, uses ternary operator '?' grab correct answer by specifying the number, otherwise it is undefined
   // for button, it will only display if game is over OR || user answers the last question, otherwise : we return null
   // for score, only want to show if !not in gameOver mode, otherwise : null as well
+  // {!gameOver && !loading && userAnswers.length === number + 1 && number !== TOTAL_QUESTIONS - 1} shows the next question ONLY when the user has put in an answer first (no next button is displayed til answer is chosen)
+  // <Wrapper> replaces the original <div className="App"></div>
   return (
-    <div className="App">
+    <>
+    <GlobalStyle />
+    <Wrapper>
       <h1>Trivia</h1>
       {gameOver || userAnswers.length === TOTAL_QUESTIONS ? (
       <button className="start" onClick={startTrivia}>
         Start
       </button>
       ) : null}
-      {!gameOver ? <p className="score">Score:</p> : null}
+      {!gameOver ? <p className="score">Score: {score}</p> : null}
       {loading && <p>Loading Questions . . .</p>}
       {!loading && !gameOver && (
       <QuestionCard 
@@ -89,10 +117,13 @@ const App = () => {
         callback={checkAnswer}
       />
       )}
-      <button className="next" onClick={nextQuestion}>
+      {!gameOver && !loading && userAnswers.length === number + 1 && number !== TOTAL_QUESTIONS - 1 ? (
+        <button className="next" onClick={nextQuestion}>
         Next Question
       </button>
-    </div>
+      ) : null}
+    </Wrapper>
+    </>
   );
 }
 
